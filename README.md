@@ -1,66 +1,84 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+COACHTECH お問い合わせフォーム
+1. 概要
+本プロジェクトは、バックエンド開発の基礎力を証明するため、Laravelを用いたTraditional Web（Bladeテンプレート/セッション認証）構成によるお問い合わせ管理システムです。
+一般ユーザー向けのお問い合わせ入力・確認・送信完了フローに加え、管理者向けのログイン・お問い合わせ検索・一覧表示・詳細確認・タグマスタ管理、CSVエクスポート機能を備えています。
+また、応用要件として、外部システムと連携可能なお問い合わせデータCRUD操作用の公開API（v1）を実装しています。
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+2. 使用技術（技術スタック）
+OS / インフラ: Docker / Laravel Sail (Nginx, MySQL 8.0)
+バックエンド: PHP 8.2 / Laravel 10.xフロントエンド: Vite / Tailwind CSS ^3.4.0 / Alpine.js
+認証: Laravel Fortify
+コード品質・テスト: Laravel Pint (PSR-12準拠) / PHPUnit (Xdebugカバレッジ71.6%達成)
 
-## About Laravel
+3. 環境構築手順以下の手順に従うことで、誰でも簡単に開発環境を構築できます。① リポジトリのクローンと移動bashgit clone <あなたのGitHubリポジトリURL>
+cd contact-form-app
+コードは注意してご使用ください。
+② .envファイルの作成.env.example をコピーして .env を作成し、以下の接続情報と一致していることを確認します。iniDB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=laravel
+DB_USERNAME=sail
+DB_PASSWORD=password
+コードは注意してご使用ください。
+③ 依存パッケージのインストールとSailの起動bash# Composerパッケージのインストール
+docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/var/www/html" -w /var/www/html laravelsail/php82-composer:latest composer install
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+# コンテナをバックグラウンドで起動
+./vendor/bin/sail up -d
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+# フロントエンドパッケージのインストールとビルド
+sail npm install
+sail npm run build
+コードは注意してご使用ください。④ アプリケーションキー生成と初期データ投入bash# アプリケーションキーの生成
+sail artisan key:generate
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+# データベースのマイグレーション & シーダー実行 (テストデータ20件自動生成)
+sail artisan migrate:fresh --seed
+コードは注意してご使用ください。
+4. 開発環境URLフロントエンド（お問い合わせフォーム）: http://localhost/contacts管理画面（要ログイン）: http://localhost/admin初期管理者アカウント:メールアドレス: test@example.comパスワード: passwordphpMyAdmin（データベース管理ツール）: http://localhost:8080
 
-## Learning Laravel
+5. APIエンドポイント一覧公開API（ルートプレフィックス: /api/v1、認証不要）の検索・詳細取得・作成・更新・削除などのエンドポイント一覧が含まれます。
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+6. 作者: 吾妻潤一
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+ER図
++-------------------+       +-------------------+
+| categories        |       | tags              |
++-------------------+       +-------------------+
+| PK id             |       | PK id             |
+|    content        |       |    name (UNIQUE)  |
+|    created_at     |       |    created_at     |
+|    updated_at     |       |    updated_at     |
++-------------------+       +-------------------+
+          |                           |
+          | 1対多                     | 1対多
+          ↓                           ↓
++-------------------+       +-------------------+
+| contacts          |       | contact_tag       |
++-------------------+       +-------------------+
+| PK id             | <----+| PK id             |
+| FK category_id    | 1対多 || FK contact_id     |
+|    first_name     |       || FK tag_id        |
+|    last_name      |       ||    created_at    |
+|    gender         |       ||    updated_at    |
+|    email          |       |+-------------------+
+|    tel            |       | (UNIQUE: contact_id, tag_id)
+|    address        |
+|    building       |
+|    detail         |
+|    created_at     |
+|    updated_at     |
++-------------------+
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
++-------------------+
+| users             |
++-------------------+
+| PK id             |
+|    name           |
+|    email (UNIQUE) |
+|    email_verified |
+|    password       |
+|    remember_token |
+|    created_at     |
+|    updated_at     |
++-------------------+
