@@ -57,10 +57,11 @@
                         </a>
                     </div>
                     <div>
-                        <a href="/contacts/export?{{ http_build_query(request()->query()) }}"
-                            class="px-6 py-2 bg-amber-600 text-white rounded hover:bg-amber-700 inline-block">
-                            エクスポート
+                        <a href="/admin/export?{{ http_build_query(request()->query()) }}"
+                        class="px-4 py-2 bg-[#baa999] hover:bg-[#a39282] text-white rounded text-sm font-medium transition shadow-sm">
+                            CSVダウンロード
                         </a>
+
                     </div>
                     <!-- ページネーション -->
                     <div class="flex items-center">
