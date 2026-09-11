@@ -1,14 +1,14 @@
 <?php
 
-use App\Http\Controllers\ContactController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ContactController;
 use Illuminate\Support\Facades\Route;
 
 // =========================================================================
 // 1. 一般一般ユーザー向け機能（Traditional Web構成）
 // =========================================================================
-Route::get('/', function () { 
-    return redirect()->route('contacts.create'); 
+Route::get('/', function () {
+    return redirect()->route('contacts.create');
 });
 
 Route::get('/contacts', [ContactController::class, 'create'])->name('contacts.create');
@@ -22,10 +22,10 @@ Route::get('/contacts/thanks', [ContactController::class, 'thanks'])->name('cont
 Route::middleware(['auth'])->group(function () {
     // 管理画面トップ（お問い合わせ一覧・検索）
     Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
-    
+
     // ★【404エラー解消のポイント】CSVエクスポートのパスを確定
     Route::get('/admin/export', [AdminController::class, 'export'])->name('admin.export');
-    
+
     // お問い合わせ詳細・削除
     Route::get('/admin/contacts/{id}', [AdminController::class, 'show'])->name('admin.show');
     Route::delete('/admin/contacts/{id}', [AdminController::class, 'destroy'])->name('admin.destroy');
@@ -36,4 +36,3 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/admin/tags/{id}', [AdminController::class, 'updateTag'])->name('admin.tags.update');
     Route::delete('/admin/tags/{id}', [AdminController::class, 'destroyTag'])->name('admin.tags.destroy');
 });
-

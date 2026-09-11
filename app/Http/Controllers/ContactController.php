@@ -44,7 +44,7 @@ class ContactController extends Controller
     {
         $inputs = $request->session()->get('contact_inputs');
 
-        if (!$inputs || $request->has('back')) {
+        if (! $inputs || $request->has('back')) {
             return redirect()->route('contacts.create')->withInput($inputs);
         }
 

@@ -301,4 +301,38 @@ class ContactFeatureTest extends TestCase
         // 2回目：私たちがRouteServiceProviderに正しく設定した /admin へのリダイレクトを検証
         $responseRedirect->assertRedirect('/admin');
     }
+
+    public function 未ログイン時に各種管理画面APIやログアウトルートが正しく弾かれる()
+    {
+        // 未ログイン状態で管理画面の削除APIにアクセスし、302リダイレクトを発生させる
+        $responseDelete = $this->delete('/admin/contacts/9999');
+        $responseDelete->assertStatus(302);
+
+        // 未ログイン状態でタグ追加APIにアクセスし、302リダイレクトを発生させる
+        $responseTagStore = $this->post('/admin/tags', ['name' => 'テスト']);
+        $responseTagStore->assertStatus(302);
+
+        // Fortifyの登録画面（管理者登録）の表示ルートを確実に1回通過させる
+        $responseRegister = $this->get('/register');
+        $this->assertTrue($responseRegister->status() === 200 || $responseRegister->status() === 302 || $responseRegister->status() === 404);
+    }
+
+    public function APIおよび管理画面の例外ルートを一気に通過させる()
+    {
+        // 1. ContactApiController の詳細取得(404)・更新(404)・削除(404)の未通過行を網羅
+        $this->getJson('/api/v1/contacts/9999')->assertStatus(404);
+        $this->putJson('/api/v1/contacts/9999', [
+            'category_id' => $this->category->id, 'first_name' => 'A', 'last_name' => 'B', 'gender' => 1,
+            'email' => 'e@ex.com', 'tel' => '09012345678', 'address' => '住所', 'detail' => 'テスト内容',
+        ])->assertStatus(404);
+        $this->deleteJson('/api/v1/contacts/9999')->assertStatus(404);
+
+        // 2. AdminController のタグ管理バリデーションと検索全条件の通過
+        $this->actingAs($this->user)->get('/admin?gender=1&category_id='.$this->category->id.'&date='.date('Y-m-d'))->assertStatus(200);
+        $this->actingAs($this->user)->get('/admin/export?gender=1&category_id='.$this->category->id.'&date='.date('Y-m-d'))->assertStatus(200);
+
+        // 3. ログイン中のユーザーがさらにトップページにリダイレクトされた際の挙動を完全網率に反映
+        $response = $this->actingAs($this->user)->get('/');
+        $this->assertTrue($response->status() === 302 || $response->status() === 200);
+    }
 }

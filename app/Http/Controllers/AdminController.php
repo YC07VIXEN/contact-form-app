@@ -27,9 +27,9 @@ class AdminController extends Controller
             $keyword = $request->input('keyword');
             $query->where(function ($q) use ($keyword) {
                 $q->where('first_name', 'like', "%{$keyword}%")
-                  ->orWhere('last_name', 'like', "%{$keyword}%")
-                  ->orWhere('email', 'like', "%{$keyword}%")
-                  ->orWhere('detail', 'like', "%{$keyword}%");
+                    ->orWhere('last_name', 'like', "%{$keyword}%")
+                    ->orWhere('email', 'like', "%{$keyword}%")
+                    ->orWhere('detail', 'like', "%{$keyword}%");
             });
         }
 
@@ -57,6 +57,7 @@ class AdminController extends Controller
     public function show($id)
     {
         $contact = Contact::with(['category', 'tags'])->findOrFail($id);
+
         return view('admin.show', compact('contact'));
     }
 
@@ -83,9 +84,9 @@ class AdminController extends Controller
             $keyword = $request->input('keyword');
             $query->where(function ($q) use ($keyword) {
                 $q->where('first_name', 'like', "%{$keyword}%")
-                  ->orWhere('last_name', 'like', "%{$keyword}%")
-                  ->orWhere('email', 'like', "%{$keyword}%")
-                  ->orWhere('detail', 'like', "%{$keyword}%");
+                    ->orWhere('last_name', 'like', "%{$keyword}%")
+                    ->orWhere('email', 'like', "%{$keyword}%")
+                    ->orWhere('detail', 'like', "%{$keyword}%");
             });
         }
         if ($request->filled('gender') && $request->input('gender') != 0) {
@@ -103,7 +104,7 @@ class AdminController extends Controller
         // 効率的なメモリ運用のためのストリームレスポンス
         return response()->stream(function () use ($contacts) {
             $handle = fopen('php://output', 'w');
-            
+
             // Excelでの日本語文字化けを完全に防止するBOMを追加
             fwrite($handle, "\xEF\xBB\xBF");
 
@@ -111,7 +112,7 @@ class AdminController extends Controller
             fputcsv($handle, ['ID', 'お名前', '性別', 'メールアドレス', '電話番号', '住所', '建物名', 'お問い合わせの種類', '詳細内容', '登録日時']);
 
             foreach ($contacts as $contact) {
-                $genderText = match((int)$contact->gender) {
+                $genderText = match ((int) $contact->gender) {
                     1 => '男性',
                     2 => '女性',
                     3 => 'その他',
@@ -120,7 +121,7 @@ class AdminController extends Controller
 
                 fputcsv($handle, [
                     $contact->id,
-                    $contact->first_name . ' ' . $contact->last_name,
+                    $contact->first_name.' '.$contact->last_name,
                     $genderText,
                     $contact->email,
                     $contact->tel,
@@ -134,7 +135,7 @@ class AdminController extends Controller
             fclose($handle);
         }, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="contacts_' . date('YmdHis') . '.csv"',
+            'Content-Disposition' => 'attachment; filename="contacts_'.date('YmdHis').'.csv"',
         ]);
     }
 
@@ -145,6 +146,7 @@ class AdminController extends Controller
     {
         $request->validate(['name' => ['required', 'string', 'max:50', 'unique:tags,name']]);
         Tag::create(['name' => $request->name]);
+
         return redirect()->route('admin.index');
     }
 
@@ -154,6 +156,7 @@ class AdminController extends Controller
     public function editTag($id)
     {
         $tag = Tag::findOrFail($id);
+
         return view('admin.tags.edit', compact('tag'));
     }
 
@@ -163,8 +166,9 @@ class AdminController extends Controller
     public function updateTag(Request $request, $id)
     {
         $tag = Tag::findOrFail($id);
-        $request->validate(['name' => ['required', 'string', 'max:50', 'unique:tags,name,' . $tag->id]]);
+        $request->validate(['name' => ['required', 'string', 'max:50', 'unique:tags,name,'.$tag->id]]);
         $tag->update(['name' => $request->name]);
+
         return redirect()->route('admin.index');
     }
 
@@ -175,6 +179,7 @@ class AdminController extends Controller
     {
         $tag = Tag::findOrFail($id);
         $tag->delete();
+
         return redirect()->route('admin.index');
     }
 }
